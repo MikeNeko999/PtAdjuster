@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ja">
+ 
+<head>
+    <meta charset="UTF-8">
+    <titleプラチナスターシアター　pt調整</title>
+</head>
+ 
+<body>
+<p>周年イベントの調整用</p>
+
+    <form>
+
+        <p><label for="CurrentPt">現在のポイント : </label>
+        <input type="text" id="CurrentPt" value="0"></p>
+ 
+        <p><label for="GoalPt">目標ポイント： </label>
+        <input type="text" id="GoalPt" value="5108000"></p>
+
+        <p><label for="Trigger">トリガー個数： </label>
+        <input type="text" id="Trigger" value="0"></p>
+ 
+        <p><button id="button">計算</button></p>
+    </form>
+ 
+    <p><label for="Pt">獲得目標pt：</label>
+    <input type="text" id="Pt"></p>
+
+    <p>各曲の回数</p>
+
+    <p><label for="Event">Event（537）：</label>
+    <input type="text" id="Event"></p>
+    <p><label for="TM">2M（35）：</label>
+    <input type="text" id="TM"></p>
+    <p><label for="FM">4M（49）：</label>
+    <input type="text" id="FM"></p>
+    <p><label for="SM">6M（64）：</label>
+    <input type="text" id="SM"></p>
+    <p><label for="TMp">2M+（62）：</label>
+    <input type="text" id="TMp"></p>
+    <p><label for="MM">MM（85）：</label>
+    <input type="text" id="MM"></p>
+    <p><label for="TEST">合計の確認：</label>
+    <input type="text" id="TEST"></p>
+    <p><label for="TESTt">イベ曲可能回数の確認：</label>
+    <input type="text" id="TESTt"></p>
+</body>
+ 
+<script>
+ 
+// ボタンの要素を取得
+var button = document.getElementById("button");
+ 
+// ボタンをクリックした時の処理
+button.addEventListener("click", function(e) {
+ 
+    e.preventDefault();
+ 
+    // 入力フォームの値を取得
+    var CurrentPt = parseInt(document.getElementById("CurrentPt").value, 10);
+    var GoalPt = parseInt(document.getElementById("GoalPt").value, 10);
+    var Trigger = parseInt(document.getElementById("Trigger").value, 10);
+ 
+    // 獲得すべきpt
+    var difference = GoalPt - CurrentPt;
+
+    //　各曲のpt設定
+   var Eventpt = 537;
+   var MMpt = 85;
+   var twoMppt = 62;
+   var sixMpt = 64;
+   var fourMpt = 49;
+   var twoMpt = 35;
+
+   //　イベント曲のトリガー消費量
+   var necTrig = 180;
+
+    // イベント曲可能回数
+    var possible = 0; 
+
+    //　各曲の回数初期値
+    var millionM=0; var sixM=0; var twoMp =0; var fourM =0; var twoM = 0;
+
+   //　チェック用変数
+    var restE = 0; var restM = 0; var restS =0; var restTp = 0; var restF = 0; var restT = 0;  
+    var checkM = 0; var checkS = 0; var checkTp = 0; var checkF = 0; var check = 0;
+
+    // イベントpt回数計算の初期値
+        var rest = difference; 
+        var evt = parseInt(difference / Eventpt, 10);
+
+   // 全探索ループ
+    while(check == 0 && evt >=0){ 
+
+      restE = difference - evt * Eventpt;   
+      rest = restE;     
+      if(rest > 0){millionM = parseInt(rest / MMpt, 10);}
+
+      while(rest > 0 && millionM >=0){
+
+        checkM = 1;
+        restM = restE - millionM * MMpt; 
+        rest = restM;
+        if(rest>0){sixM = parseInt(rest / sixMpt, 10);}
+
+        while(rest > 0 && sixM >=0){
+
+          checkS=1;
+          restS = restM - sixM * sixMpt; 
+          rest = restS; 
+          if(rest>0){twoMp =  parseInt(rest / twoMppt, 10);}
+
+          while(rest > 0 && twoMp >= 0){
+
+            checkTp = 1;
+            restTp = restS - twoMp * twoMppt; 
+            rest = restTp; 
+            if(rest>0){fourM = parseInt(rest / fourMpt, 10);}   
+
+            while(rest > 0 && fourM >=0){
+              checkF = 1; 
+              restF = restTp - fourM * fourMpt; 
+              rest = restF; 
+              twoM = parseInt(rest / twoMpt, 10);
+              rest -= twoM * twoMpt;
+              if(rest > 0){twoM = 0;}
+              fourM--;
+            }
+            twoMp--;
+          }
+          sixM--;
+        }
+        millionM--;    
+      }  
+      if(rest == 0){ 
+        millionM += checkM; sixM += checkS; twoMp += checkTp; fourM += checkF; 
+        possible = parseInt((millionM * MMpt + sixM * sixMpt + twoMp * twoMppt + fourM * fourMpt + twoM * twoMpt + Trigger) / necTrig, 10); 
+        if(possible >= evt){check =1;}
+
+        //possibleでなかった場合に全リセット
+        if(possible < evt){
+          millionM = 0; sixM = 0; fourM = 0; twoM = 0; twoMp = 0;
+          checkM = 0; checkS = 0; checkF = 0; checkTp = 0; 
+        }
+      }
+      evt--;
+    }
+    evt++; 
+
+    //結果表示
+    var RESULT; 
+    if(rest !==0){RESULT = "失敗！"}
+    if(rest ==0){RESULT = millionM * MMpt + sixM * sixMpt + twoMp * twoMppt + fourM * fourMpt + twoM * twoMpt + evt * Eventpt;}
+
+ 
+    // 結果を別の入力フォームに表示
+    var Pt = document.getElementById("Pt");
+    Pt.value = difference;
+    var Event = document.getElementById("Event");
+    Event.value = evt;
+    var MM = document.getElementById("MM");
+    MM.value = millionM;
+    var SM = document.getElementById("SM");
+    SM.value = sixM;
+    var TMp = document.getElementById("TMp");
+    TMp.value = twoMp;
+    var FM = document.getElementById("FM");
+    FM.value = fourM;
+    var TM = document.getElementById("TM");
+    TM.value = twoM;
+    var TEST = document.getElementById("TEST");
+    TEST.value = RESULT;
+    var TESTt = document.getElementById("TESTt");
+    TESTt.value = parseInt((millionM * MMpt + sixM * sixMpt + twoMp * twoMppt + fourM * fourMpt + twoM * twoMpt + Trigger) / necTrig, 10);
+});
+ 
+</script>
+ 
+</html>
